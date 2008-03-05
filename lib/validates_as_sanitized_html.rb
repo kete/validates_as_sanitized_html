@@ -12,7 +12,7 @@ module ActiveRecord
         validates_each(attr_names, configuration) do |record, attr_name, value|
           # allow for turning off sanitization on a record by record basis
           # via virtual attribute on record
-          do_not_sanitize = !record.do_not_sanitize.nil? && (record.do_not_sanitize == true || record.do_not_sanitize == 1) ?  true : false
+          do_not_sanitize = !record.do_not_sanitize.nil? && record.do_not_sanitize.to_s != 'false' && (record.do_not_sanitize.to_s == 'true' || record.do_not_sanitize.to_i == 1) ?  true : false
           unless do_not_sanitize
             # TODO: see if we can reuse sanitization
             # from rail's html/sanitize or helpers/sanitize_helper
@@ -22,8 +22,10 @@ module ActiveRecord
                 record.errors.add(attr_name,
                                   ": we aren't currently allowing forms or javascript in submitted HTML for security reasons.")
               else
-                new_value = Hpricot(value).to_html
-                record.errors.add(attr_name, ": is not valid html.  It looks like you didn't close all your tags.") if new_value != value
+                # Walter McGinnis, 2008-02-04
+                # this is not accurate enough, get false positives
+                # new_value = Hpricot(value).to_html
+                # record.errors.add(attr_name, ": is not valid html.  It looks like you didn't close all your tags.") if new_value != value
               end
             end
           end
